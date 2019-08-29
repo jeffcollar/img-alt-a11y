@@ -1,33 +1,74 @@
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     if (request.message === "clicked_browser_action") {
+
+        let existing_wrapper = document.getElementsByClassName('img-alt-a11y-wrapper');
+        if (existing_wrapper.length > 0) {
+            existing_wrapper[0].style.display = 'block';
+            return;
+        }
         
+        // wrapper and container
         let wrapper = document.createElement('div')
-        wrapper.style.cssText = 'position: absolute; background-color: rgba(0,0,0,0.5); height: 100vh; width: 100vw; top: 0; left: 0; bottom: 0; right: 0; text-align: center; z-index: 2000000000; font-family: Verdana, san-serif; color: #222222;';
+        wrapper.classList.add('img-alt-a11y-wrapper');
         document.body.appendChild(wrapper);
 
         let container = document.createElement('div')
-        container.style.cssText = 'background-color: #EEEEEE; border: 2px solid black; height: 80%; width: 80%; margin: 5% auto; overflow: scroll; text-align: left;';
+        container.classList.add('img-alt-a11y-container');
         wrapper.appendChild(container);
 
+        // header
+        let header = document.createElement('header')
+        header.classList.add('img-alt-a11y-header')
+        container.appendChild(header);
+
+        let heading = document.createElement('h1')
+        heading.classList.add('img-alt-a11y-h1')
+        heading.innerText = 'Image Alt Text A11y'
+        header.appendChild(heading);
+
+        let closeButton = document.createElement('button')
+        closeButton.innerText = 'Close Img Alt A11y'
+        closeButton.classList.add('img-alt-a11y-close-button')
+        closeButton.onclick = function(e) {
+            wrapper.style.display = 'none';
+        }
+        header.appendChild(closeButton);
+
+        // image list
         let list = document.createElement('ul')
-        list.style.cssText = 'list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap;'
+        list.classList.add('img-alt-a11y-ul')
         container.appendChild(list);
 
-        images = document.getElementsByTagName('img')
-        for (i=0; i<images.length; i++) {
+        
+
+        const images = [...document.getElementsByTagName('img')]
+        const visibleImages = images.map((child) => {
+            if (child.attributes['aria-hidden'] === true || 
+                child.attributes['role'] === 'presentation' ||
+                window.getComputedStyle(child).display === "none") {
+                    return false;
+                }
+
+            return true;
+        })
+
+        images.forEach((child) => {
             let list_item = document.createElement('li')
-            list_item.style.cssText = 'display: flex; flex-direction: column; width: 25%;'
+            list_item.classList.add('img-alt-a11y-li')
             list.appendChild(list_item);
 
-            let image = images[i];
-            image.style.cssText = 'object-fit: contain; width: 100%;'
-            list_item.appendChild(image);
+            let new_image = child.cloneNode(true);
+            new_image.className = 'img-alt-a11y-li-image';
+            list_item.appendChild(new_image);
 
             let alt_text = document.createElement('p');
-            alt_text.innerText = images[i].alt;
-            alt_text.style.cssText = 'color: #222222';
+            alt_text.classList.add('img-alt-a11y-li-text')
+            alt_text.innerText = child.alt;
             list_item.appendChild(alt_text);
-        }
+
+            console.log(child.src);
+            console.log(child.alt);
+        });
 
         window.scrollTo(0,0);
     }
