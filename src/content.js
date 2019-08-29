@@ -52,12 +52,14 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
             return true;
         })
 
-        images.forEach((child) => {
+        visibleImages.forEach((child) => {
             let list_item = document.createElement('li')
             list_item.classList.add('img-alt-a11y-li')
             list.appendChild(list_item);
 
             let new_image = child.cloneNode(true);
+            new_image.removeAttribute('height');
+            new_image.removeAttribute('width');
             new_image.className = 'img-alt-a11y-li-image';
             list_item.appendChild(new_image);
 
