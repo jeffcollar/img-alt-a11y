@@ -42,12 +42,16 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         
 
         const images = [...document.getElementsByTagName('img')]
-        const visibleImages = images.map((child) => {
-            if (child.attributes['aria-hidden'] === true || 
-                child.attributes['role'] === 'presentation' ||
-                window.getComputedStyle(child).display === "none") {
-                    return false;
-                }
+        let hiddenImageCount = 0;
+        const visibleImages = images.filter((child) => {
+            ariaHidden = child.hasAttribute('aria-hidden') && child.attributes['aria-hidden'].value === true;
+            presentation = child.hasAttribute('role') && child.attributes['role'].value === 'presentation';
+            computedSylte = window.getComputedStyle(child);
+            hidden = computedSylte.display === "none" || computedSylte.visibility === "hidden";
+            if (ariaHidden || presentation || hidden) {
+                hiddenImageCount += 1;
+                return false;
+            }
 
             return true;
         })
@@ -71,6 +75,15 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
             console.log(child.src);
             console.log(child.alt);
         });
+
+        if (hiddenImageCount > 0) {
+            let hiddenImageText = document.createElement('p');
+            hiddenImageText.classList.add('img-alt-a11y-hidden-image-text')
+            let verb = (hiddenImageCount > 1) ? 'are' : 'is';
+            let countLabel = (hiddenImageCount > 1) ? 'images' : 'image';
+            hiddenImageText.innerText = `There ${verb} ${hiddenImageCount} ${countLabel} on the page not visible to screen readers.`
+            container.appendChild(hiddenImageText);
+        }
 
         window.scrollTo(0,0);
     }
